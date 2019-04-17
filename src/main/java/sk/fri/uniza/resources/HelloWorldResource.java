@@ -6,6 +6,7 @@ import io.dropwizard.auth.Auth;
 import sk.fri.uniza.api.Saying;
 import sk.fri.uniza.auth.Role;
 import sk.fri.uniza.auth.User;
+import sk.fri.uniza.views.PersonView;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
@@ -45,5 +46,12 @@ public class HelloWorldResource {
     public Saying sayHello(@Auth User user) {
         final String value = String.format(template, user.getName());
         return new Saying(counter.incrementAndGet(), value);
+    }
+
+    @GET @Path("/user-info")
+    @Produces(MediaType.TEXT_HTML)
+    @RolesAllowed({Role.ADMIN, Role.USER_READ_ONLY})
+    public PersonView getInfo(@Auth User user){
+        return new PersonView(user);
     }
 }

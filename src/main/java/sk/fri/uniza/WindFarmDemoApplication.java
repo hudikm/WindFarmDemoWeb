@@ -9,6 +9,7 @@ import io.dropwizard.bundles.redirect.HttpsRedirect;
 import io.dropwizard.bundles.redirect.RedirectBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.views.ViewBundle;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import retrofit2.Response;
@@ -48,6 +49,7 @@ public class WindFarmDemoApplication extends Application<WindFarmDemoConfigurati
         bootstrap.addBundle(new RedirectBundle(
                 new HttpsRedirect()
         ));
+        bootstrap.addBundle(new ViewBundle<WindFarmDemoConfiguration>());
     }
 
     @Override

@@ -29,3 +29,6 @@ server:
       keyStorePath: dwstart.keystore
       keyStorePassword: crimson
       validateCerts: false
+  adminConnectors:
+    - type: http
+      port: 8082
