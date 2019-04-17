@@ -1,0 +1,31 @@
+template: Hello, %s!
+defaultName: Stranger
+
+# Logging settings.
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: INFO
+
+  # Logger-specific levels.
+  loggers:
+
+    # Sets the level for 'com.example.app' to DEBUG.
+    sk.fri.uniza: DEBUG
+
+    # Redirects SQL logs to a separate file
+    org.hibernate.SQL:
+      level: DEBUG
+
+
+#Server configuration.
+server:
+  rootPath: /api/
+  applicationConnectors:
+    - type: http
+      port: 8080
+    - type: https
+      port: 8443
+      keyStorePath: dwstart.keystore
+      keyStorePassword: crimson
+      validateCerts: false
