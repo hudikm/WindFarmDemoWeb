@@ -8,6 +8,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sk.fri.uniza.core.User;
+import sk.fri.uniza.core.UserBuilder;
 
 import java.security.Key;
 import java.util.Arrays;
@@ -42,13 +44,12 @@ public class OAuth2Authenticator implements Authenticator<String, User> {
         }
 
         Set<String> roles = parseRolesClaim(claimsJws);
-
         return Optional.of(
-                User.newBuilder()
-                        .withId(claimsJws.getSubject())
-                        .withUUID(claimsJws.getId())
-                        .withRoles(roles)
-                        .build());
+                new UserBuilder()
+                        .setUserName(claimsJws.getSubject())
+                        .setRoles(roles)
+                        .setId(Long.valueOf(claimsJws.getId()))
+                        .createUser());
     }
 
 

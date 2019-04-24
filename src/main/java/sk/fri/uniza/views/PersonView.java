@@ -1,13 +1,14 @@
 package sk.fri.uniza.views;
 
-import io.dropwizard.views.View;
-import sk.fri.uniza.auth.User;
+import sk.fri.uniza.core.User;
 
-public class PersonView extends View {
+import javax.ws.rs.core.UriInfo;
+
+public class PersonView extends MaterializePage<MaterializeHeader, MaterializeFooter> {
     private final User person;
 
-    public PersonView(User person) {
-        super("person.ftl");
+    public PersonView(UriInfo uriInfo, User person) {
+        super("person.ftl", uriInfo, new MaterializeHeader(person, "User Info", true), new MaterializeFooter());
         this.person = person;
     }
 

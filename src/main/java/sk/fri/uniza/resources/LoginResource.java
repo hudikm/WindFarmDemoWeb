@@ -1,124 +1,142 @@
 package sk.fri.uniza.resources;
 
+import com.google.common.collect.ImmutableMap;
 import io.dropwizard.auth.AuthenticationException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.SignatureException;
+import io.dropwizard.views.View;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sk.fri.uniza.WindFarmDemoApplication;
 import sk.fri.uniza.api.AccessToken;
-import sk.fri.uniza.api.LoginApi;
-import sk.fri.uniza.auth.Role;
-import sk.fri.uniza.auth.User;
-import sk.fri.uniza.auth.Users;
+import sk.fri.uniza.api.OauthRequest;
+import sk.fri.uniza.api.OauthRequestBuilder;
+import sk.fri.uniza.auth.Session;
+import sk.fri.uniza.auth.Sessions;
+import sk.fri.uniza.core.User;
+import sk.fri.uniza.configuration.ServiceConnector;
+import sk.fri.uniza.configuration.ServiceDbAuth;
+import sk.fri.uniza.views.DoneView;
+import sk.fri.uniza.views.LoginView;
 
-
-import javax.crypto.spec.SecretKeySpec;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
-
-
-import java.security.Key;
-import java.util.Date;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @Path("/login")
 public class LoginResource {
 
     final Logger myLogger = LoggerFactory.getLogger(this.getClass());
+    private Sessions sessionDao;
+    private ServiceDbAuth serviceDbAuthConfig;
 
-    private Key key;
-    private Users users;
-    private Claims claimsJws;
 
-    public LoginResource(Key key, Users users) {
-        //We will sign our JWT with our ApiKey secret
-        this.key = new SecretKeySpec(key.getEncoded(), SignatureAlgorithm.forSigningKey(key).getJcaName());
-        this.users = users;
+    public LoginResource(Sessions sessionDao, ServiceDbAuth serviceDbAuthConfig) {
+
+        this.sessionDao = sessionDao;
+        this.serviceDbAuthConfig = serviceDbAuthConfig;
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    public View showLoginPage(@Context UriInfo uriInfo) {
+        String oauthUrl = null;
+        uriInfo.getBaseUri().toString();
+        try {
+            OauthRequest oauthRequest = new OauthRequestBuilder()
+                    .setClientId(serviceDbAuthConfig.getClientId())
+                    .setRedirectUri(uriInfo.resolve(new URI("/login/oauth-callback")).toString()) //http://localhost:8080/login/oauth-callback
+                    .setResponseType("code")
+                    .setScope("")
+                    .setState("blabla")
+                    .createOauthRequest();
+
+
+            final int serverPort = serviceDbAuthConfig.getServiceConnectors().stream()
+                    .filter(serviceConnector -> serviceConnector.getType().equals(uriInfo.getBaseUri().getScheme()))
+                    .findFirst()
+                    .map(ServiceConnector::getPort)
+                    .orElse(8085);
+
+            //            final int serverPort = uriInfo.getBaseUri().getScheme().equals("http") ? 8085 : 8445;
+            URI build = new URIBuilder(uriInfo.getBaseUriBuilder().port(serverPort).build().resolve("/api/login").toString()) //http://localhost:8085/api/login
+                    .addParameters(oauthRequest)
+                    .build();
+            oauthUrl = build.toASCIIString();
+
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        return new LoginView(uriInfo, oauthUrl, "/user-info");
     }
 
     @POST
-    @Produces("application/json")
-    @Consumes("application/json")
-    public Response getAccessToken(LoginApi loginApi) {
+    @Path("oauth-callback")
+    @Produces(MediaType.TEXT_HTML)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response oauthCallback(@QueryParam("code") String code, @QueryParam("state") String state, MultivaluedMap<String, String> formParams) {
 
-        if (loginApi != null) {
-            myLogger.info(loginApi.toString());
+        Map<String, String> codeRequest = ImmutableMap.of(
+                "client_id", serviceDbAuthConfig.getClientId(),
+                "client_secret", serviceDbAuthConfig.getSecret(),
+                "code", code);
+        Session session = null;
+        try {
+            retrofit2.Response<AccessToken> tokenResponse = WindFarmDemoApplication.getWindFarmServis().getAccessToken(codeRequest).execute();
+            if (tokenResponse.isSuccessful()) {
+                AccessToken accessToken = tokenResponse.body();
+                User user;
+
+                try {
+                    user = User.getInstance(accessToken.getAccessToken(), WindFarmDemoApplication.getServerPublicKey());
+                } catch (AuthenticationException e) {
+                    e.printStackTrace();
+                    throw new WebApplicationException("Token doesn't contain User info", Response.Status.BAD_REQUEST);
+                }
+                session = new Session(1000, accessToken.getAccessToken(), user);
+                sessionDao.save(session);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new WebApplicationException("Error getting access token", Response.Status.BAD_REQUEST);
         }
 
-        /**
-         * Test if login info is valid i.e. User name and password
-         */
-        Optional<User> optionalUser = users.get(loginApi.getUsername());
-        if (!optionalUser.isPresent()) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
+        final Boolean useSecureCookie = false; // determines whether the cookie should only be sent using a secure protocol, such as HTTPS or SSL
+        final int expiryTime = formParams.getFirst("stay_signin") != null ? 3600 * 24 * 7 : -1;  // 1 week in seconds / // A negative value means that the cookie is not stored persistently and will be deleted when the Web browser exits. A zero value causes the cookie to be deleted.
+        final String cookiePath = "/"; // The cookie is visible to all the pages in the directory you specify, and all the pages in that directory's subdirectories
 
-        User user = optionalUser.get();
-        if (!user.testPassword(loginApi.getPassword())) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
+        NewCookie newCookie = new NewCookie("user_session", session.getSession(), cookiePath, "", "", expiryTime, useSecureCookie);
 
-        String jwt = createJWT(user.getUUID(), "me", user.getName(), Integer.MAX_VALUE, Map.of("scope", user.getRolesString()));
-
-        AccessToken accessToken = new AccessToken().withAccessToken(jwt)
-                .withTokenType("Bearer")
-                .withExpiresIn(Integer.MAX_VALUE)
-                .withRefreshToken("tGzv3JOkF0XG5Qx2TlKWIA")
-                .withExampleParameter("example_value");
-
-        CacheControl cacheControl = new CacheControl();
-//        cacheControl.setNoStore(true);
-        cacheControl.setNoCache(true);
-
-        return Response.ok()
-                .cacheControl(cacheControl)
-                .cookie(new NewCookie("account", accessToken.getAccessToken(), "/", null, null, accessToken.getExpiresIn(), false, true))
-                .type(MediaType.APPLICATION_JSON)
-                .entity(accessToken)
+        return Response
+                .ok()
+                .cookie(newCookie)
+                .type(MediaType.TEXT_HTML_TYPE)
+                .entity(new DoneView())
                 .build();
     }
 
-    public String createJWT(String id, String issuer, String subject, long ttlMillis, Map<String, Object> claims) {
 
-        //The JWT signature algorithm we will be using to sign the token
-        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
-
-        long nowMillis = System.currentTimeMillis();
-        Date now = new Date(nowMillis);
+    @GET
+    @Path("logout")
+    public Response logout() {
 
 
-        //Let's set the JWT Claims
-        JwtBuilder builder = Jwts.builder()
-                .setId(id)
-                .setIssuedAt(now)
-                .setSubject(subject)
-                .setIssuer(issuer)
-                .signWith(key);
+        final Boolean useSecureCookie = false; // determines whether the cookie should only be sent using a secure protocol, such as HTTPS or SSL
+        final int expiryTime = 0;  // 1 week in seconds / // A negative value means that the cookie is not stored persistently and will be deleted when the Web browser exits. A zero value causes the cookie to be deleted.
+        final String cookiePath = "/"; // The cookie is visible to all the pages in the directory you specify, and all the pages in that directory's subdirectories
 
-        //if it has been specified, let's add the expiration
-        if (ttlMillis > 0) {
-            long expMillis = nowMillis + ttlMillis;
-            Date exp = new Date(expMillis);
-            builder.setExpiration(exp);
-        }
+        NewCookie newCookie = new NewCookie("user_session", "", cookiePath, "", "", expiryTime, useSecureCookie);
 
-        if (claims != null) {
-            builder.addClaims(claims);
-        }
-        //Builds the JWT and serializes it to a compact, URL-safe string
-        return builder.compact();
+        URI uri = UriBuilder.fromPath("/login").build();
+
+        return Response
+                .seeOther(uri)
+                .cookie(newCookie)
+                .build();
     }
 
 }

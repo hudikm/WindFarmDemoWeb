@@ -1,6 +1,17 @@
 template: Hello, %s!
 defaultName: Stranger
 
+#Database service + OAuth service
+serviceDbAuth:
+  clientId: client1
+  secret: 123456
+  path: /
+  serviceConnectors:
+    - type: http
+      port: 8085
+    - type: https
+      port: 8445
+
 # Logging settings.
 logging:
 
@@ -20,7 +31,7 @@ logging:
 
 #Server configuration.
 server:
-  rootPath: /api/
+  rootPath: /
   applicationConnectors:
     - type: http
       port: 8080

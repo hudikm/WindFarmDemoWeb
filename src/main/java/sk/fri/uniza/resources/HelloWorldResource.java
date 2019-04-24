@@ -5,7 +5,7 @@ import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;
 import sk.fri.uniza.api.Saying;
 import sk.fri.uniza.auth.Role;
-import sk.fri.uniza.auth.User;
+import sk.fri.uniza.core.User;
 import sk.fri.uniza.views.PersonView;
 
 import javax.annotation.security.RolesAllowed;
@@ -13,7 +13,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.Optional;
 
@@ -48,10 +50,11 @@ public class HelloWorldResource {
         return new Saying(counter.incrementAndGet(), value);
     }
 
-    @GET @Path("/user-info")
+    @GET
+    @Path("/user-info")
     @Produces(MediaType.TEXT_HTML)
     @RolesAllowed({Role.ADMIN, Role.USER_READ_ONLY})
-    public PersonView getInfo(@Auth User user){
-        return new PersonView(user);
+    public PersonView getInfo(@Auth User user, @Context UriInfo uriInfo) {
+        return new PersonView(uriInfo, user);
     }
 }
