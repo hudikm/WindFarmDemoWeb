@@ -2,8 +2,12 @@ package sk.fri.uniza.auth;
 
 import sk.fri.uniza.core.User;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.UUID;
 
 public class Session {
@@ -69,4 +73,9 @@ public class Session {
     public void setUser(User user) {
         this.user = user;
     }
+
+    public String getBearerToken() {
+        return "Bearer " + getToken();
+    }
+
 }

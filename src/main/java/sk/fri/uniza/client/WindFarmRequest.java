@@ -10,6 +10,7 @@ import sk.fri.uniza.api.PublicKey;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 public interface WindFarmRequest {
 
@@ -27,9 +28,18 @@ public interface WindFarmRequest {
     Call<List<Person>> getAllPersons(@Header("Authorization") String authorization);
 
     @GET("/api/persons/{id}")
-    Call<Person> getPerson(@Path("id") long id);
+    Call<Person> getPerson(@Header("Authorization") String authorization, @Path("id") Long id);
 
     @GET("/api/persons")
-    Call<Paged<List<Person>>> getPagedPersons(@Query("limit") int limit, @Query("page") int page);
+    Call<Paged<List<Person>>> getPagedPersons(@Header("Authorization") String authorization, @Query("limit") Integer limit, @Query("page") Integer page);
 
+    @POST("/api/persons")
+    Call<Person> savePersons(@Header("Authorization") String authorization, @Body Person person);
+
+    @POST("/api/persons/password")
+    @FormUrlEncoded
+    Call<Void> saveNewPassword(@Header("Authorization") String authorization, @Query("id") Long id,  @Field("password") String password);
+
+    @DELETE("/api/persons")
+    Call<Void> deletePerson(@Header("Authorization") String bearerToken, @Query("id") Long id);
 }

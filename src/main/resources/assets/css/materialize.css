@@ -3438,9 +3438,10 @@ table span.badge {
   }
 }
 
-@media only screen and (min-width: 993px) {
+@media only screen and (min-width: 993px) and (max-width: 1900px) {
   .container {
-    width: 50%;
+    /*width: 50%;*/
+    padding-left: 300px;
   }
 }
 

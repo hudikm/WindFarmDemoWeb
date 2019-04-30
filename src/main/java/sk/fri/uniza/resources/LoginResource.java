@@ -70,7 +70,7 @@ public class LoginResource {
             e.printStackTrace();
         }
 
-        return new LoginView(uriInfo, oauthUrl, "/user-info");
+        return new LoginView(uriInfo, oauthUrl, "/persons/user-info");
     }
 
     @POST

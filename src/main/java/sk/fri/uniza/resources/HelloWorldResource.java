@@ -5,31 +5,55 @@ import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;
 import sk.fri.uniza.api.Saying;
 import sk.fri.uniza.auth.Role;
+import sk.fri.uniza.auth.Sessions;
 import sk.fri.uniza.core.User;
-import sk.fri.uniza.views.PersonView;
+import sk.fri.uniza.views.GraphView;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
-import java.util.concurrent.atomic.AtomicLong;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.net.URI;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Path("")
 @Produces(MediaType.APPLICATION_JSON)
 public class HelloWorldResource {
     private final String template;
     private final String defaultName;
+    private Sessions sessionDao;
     private final AtomicLong counter;
 
-    public HelloWorldResource(String template, String defaultName) {
+    public HelloWorldResource(String template, String defaultName, Sessions sessionDao) {
         this.template = template;
         this.defaultName = defaultName;
+        this.sessionDao = sessionDao;
         this.counter = new AtomicLong();
+    }
+
+    @GET
+    @Path("")
+    public Response redirect(@Context HttpHeaders headers) {
+        URI uri;
+        User user = null;
+        try {
+            user = sessionDao.getSession(headers).getUser();
+        } catch (WebApplicationException e){
+
+        };
+
+        if (user == null) {
+            uri = UriBuilder.fromPath("/login")
+                    .build();
+        } else {
+            uri = UriBuilder.fromPath("/persons/user-info")
+                    .build();
+        }
+
+
+        return javax.ws.rs.core.Response.seeOther(uri)
+                .build();
     }
 
     @GET
@@ -50,11 +74,14 @@ public class HelloWorldResource {
         return new Saying(counter.incrementAndGet(), value);
     }
 
+
     @GET
-    @Path("/user-info")
+    @Path("/graphs")
     @Produces(MediaType.TEXT_HTML)
-    @RolesAllowed({Role.ADMIN, Role.USER_READ_ONLY})
-    public PersonView getInfo(@Auth User user, @Context UriInfo uriInfo) {
-        return new PersonView(uriInfo, user);
+    @PermitAll
+    public GraphView graphView(@Auth User user, @Context UriInfo uriInfo, @Context HttpHeaders headers) {
+
+        return new GraphView(uriInfo, user);
     }
+
 }

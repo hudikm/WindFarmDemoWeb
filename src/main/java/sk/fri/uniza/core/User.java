@@ -8,6 +8,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
 import org.apache.commons.lang.ArrayUtils;
+import sk.fri.uniza.auth.Role;
 
 import java.security.Key;
 import java.security.MessageDigest;
@@ -23,9 +24,11 @@ public class User implements Principal {
     private Set<String> roles;
     private byte[] secrete;
     private byte[] salt = new byte[8];
+
     // Hibernate need default constructor
     public User() {
     }
+
     public User(Long id, String userName, Set<String> roles, String password) {
         this.id = id;
         this.userName = userName;
@@ -37,7 +40,8 @@ public class User implements Principal {
     public User(String userName, Set<String> roles, String password) {
         this.userName = userName;
         this.roles = roles;
-        setNewPassword(password);
+        if (password != null)
+            setNewPassword(password);
     }
 
     /**
@@ -85,9 +89,14 @@ public class User implements Principal {
         String scopesObject = claims.get("scope", String.class);
         String[] scopes = {};
         if (scopesObject != null) {
-            scopes = scopesObject.split(" ");
+            scopes = scopesObject.split(",");
         }
         return ImmutableSet.copyOf(Arrays.asList(scopes));
+    }
+
+    @JsonIgnore
+    public Role getSystemRoles() {
+        return Role.getInstance();
     }
 
     @JsonProperty("userName")
@@ -110,6 +119,10 @@ public class User implements Principal {
 
     public Set<String> getRoles() {
         return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
     }
 
     @JsonIgnore

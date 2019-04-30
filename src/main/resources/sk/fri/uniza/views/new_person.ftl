@@ -1,8 +1,7 @@
-<#-- @ftlvariable name="" type="sk.fri.uniza.views.PersonView" -->
+<#-- @ftlvariable name="" type="sk.fri.uniza.views.NewPersonView" -->
 <!-- calls getPersons().getName() and sanitizes it -->
 <div class="section no-pad-bot" id="index-banner">
-    <form class="container" action="/persons/user-info" method="post">
-        <input name="id" type="number" hidden value="${person.getId()}">
+    <form class="container" action="/persons/new-user" method="post">
         <br><br>
         <div class="row">
             <div class="col s12">
@@ -19,34 +18,28 @@
                                 </div>
                                 <div class="col s9 m8 l10">
                                     <span class="white-text">
-                                        ${person.getFirstName()} ${person.getLastName()}
+
                                     </span>
                                 </div>
                             </div>
                         </div>
                         <div class="card-content">
                             <div class="row">
-                                <div class="input-field col s6">
-                                    <input id="first_name" name="first_name" type="text" class="validate"
-                                           value="${person.getFirstName()}">
+                              <div class="input-field col s6">
+                                    <input id="first_name" name="first_name" type="text" class="validate" required>
                                     <label for="first_name">First Name</label>
                                 </div>
                                 <div class="input-field col s6">
-                                    <input id="last_name" name="last_name" type="text" class="validate" value="${person.getLastName()}">
+                                    <input id="last_name" name="last_name" type="text" class="validate" required>
                                     <label for="last_name">Last Name</label>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="input-field col s12">
-                                <select name="roles" ${loginUser.getRoles()?seq_contains(person.getSystemRoles().getADMIN())?string("","disabled")}>
-<#--                                <option value="" disabled selected>Nastavte oprávnenia</option>-->
+                                <select name="roles" required>
 
-                                <#list person.getSystemRoles().getAllRoles() as role>
-                                    <#if person.getRoles()?seq_contains(role)>
-                                    <option value="${role}" selected>${role}</option>
-                                    <#else>
+                                <#list getSystemRoles().getAllRoles() as role>
                                     <option value="${role}" >${role}</option>
-                                    </#if>
                                 </#list>
 
                                 </select>
@@ -55,13 +48,19 @@
                             </div>
                             <div class="row">
                                 <div class="input-field col s12">
-                                    <input id="password"  name="password" type="password" class="validate">
+                                    <input id="password"  name="password" type="password" class="validate" required>
                                     <label for="password">Password</label>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="input-field col s12">
-                                    <input id="email" name="email" type="email" class="validate" value="${person.getEmail()}">
+                                    <input id="username" name="username" type="email" class="validate" required>
+                                    <label for="username">Užívateľské meno</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <input id="email" name="email" type="email" class="validate" required>
                                     <label for="email">Email</label>
                                 </div>
                             </div>

@@ -10,6 +10,7 @@ import io.dropwizard.bundles.redirect.RedirectBundle;
 
 import io.dropwizard.jersey.errors.ErrorEntityWriter;
 import io.dropwizard.jersey.errors.ErrorMessage;
+import io.dropwizard.jersey.validation.ValidationErrorMessage;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.views.View;
@@ -29,6 +30,7 @@ import sk.fri.uniza.resources.HelloWorldResource;
 import sk.fri.uniza.resources.LoginResource;
 import sk.fri.uniza.resources.PersonsResource;
 import sk.fri.uniza.views.ErrorView;
+import sk.fri.uniza.views.ValidationErrorView;
 
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
@@ -111,6 +113,13 @@ public class WindFarmDemoApplication extends Application<WindFarmDemoConfigurati
                 return new ErrorView(errorMessage);
             }
         });
+        // Register new validation error handler
+        environment.jersey().register(new ErrorEntityWriter<ValidationErrorMessage,View>(MediaType.TEXT_HTML_TYPE, View.class) {
+            @Override
+            protected View getRepresentation(ValidationErrorMessage message) {
+                return new ValidationErrorView(message);
+            }
+        });
     }
 
     private void registerUserAuth(WindFarmDemoConfiguration configuration, Environment environment) {
@@ -133,7 +142,7 @@ public class WindFarmDemoApplication extends Application<WindFarmDemoConfigurati
     }
 
     private void registerResources(WindFarmDemoConfiguration configuration, Environment environment) {
-        final HelloWorldResource helloWorldResource = new HelloWorldResource(configuration.getTemplate(), configuration.getDefaultName());
+        final HelloWorldResource helloWorldResource = new HelloWorldResource(configuration.getTemplate(), configuration.getDefaultName(),sessionsDB);
         final PersonsResource personsResource = new PersonsResource(sessionsDB);
         environment.jersey().register(helloWorldResource);
         environment.jersey().register(new LoginResource(sessionsDB, configuration.getServiceDbAuth()));

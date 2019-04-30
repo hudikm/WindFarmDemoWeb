@@ -6,13 +6,15 @@
 
 
 <#assign menu_items = [
-{"title":"Fist link With Icon","url":"#","icon":"cloud"},
+{"title":"Dashboard","url":"graphs","icon":"cloud"},
 {"title":"Second Link","url":"#"},
-{"title":"Third Link","url":"#","icon":"person","subheader":"Subheader","divider":"true"},
 {"title":"Fourth Link","url":"#"},
 {"title":"Login","url":"login"},
-{"title":"User info","url":"user-info"},
-{"title":"Zoznam užívateľov","url":"persons","roles":["ADMIN"]},
+{"subheader":"Info","divider":"true"},
+{"title":"User info","icon":"person","url":"persons/user-info"},
+{"title":"Nový užívateľ","icon":"person_add","url":"persons/new-user","roles":["ADMIN"]},
+{"title":"Zoznam užívateľov","icon":"group","url":"persons","roles":["ADMIN"]},
+
 {"subheader":"Subheader 2","divider":"true"},
 {"title":"ADMIN READ_ONLY","url":"#","roles":["ADMIN","USER_READ_ONLY"]},
 {"title":"ADMIN","url":"#","roles":["ADMIN"]},

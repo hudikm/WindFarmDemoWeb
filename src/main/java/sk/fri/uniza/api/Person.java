@@ -8,6 +8,7 @@ public class Person extends User {
     private String FirstName;
     private String LastName;
     private String email;
+    private Set<Phone> phoneNumbers;
 
     public Person() {
 
@@ -15,6 +16,13 @@ public class Person extends User {
 
     public Person(String userName, Set<String> roles, String password, String firstName, String lastName, String email) {
         super(userName, roles, password);
+        FirstName = firstName;
+        LastName = lastName;
+        this.email = email;
+    }
+
+    public Person(String userName, Set<String> roles, String firstName, String lastName, String email) {
+        super(userName, roles, null);
         FirstName = firstName;
         LastName = lastName;
         this.email = email;
@@ -42,5 +50,13 @@ public class Person extends User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Set<Phone> getPhoneNumbers() {
+        return phoneNumbers;
+    }
+
+    public void setPhoneNumbers(Set<Phone> phoneNumbers) {
+        this.phoneNumbers = phoneNumbers;
     }
 }

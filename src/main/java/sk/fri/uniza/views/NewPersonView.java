@@ -1,19 +1,19 @@
 package sk.fri.uniza.views;
 
 import sk.fri.uniza.api.Person;
+import sk.fri.uniza.auth.Role;
 import sk.fri.uniza.core.User;
 
 import javax.ws.rs.core.UriInfo;
 
-public class PersonView extends MaterializePage<MaterializeHeader, MaterializeFooter> {
+public class NewPersonView extends MaterializePage<MaterializeHeader, MaterializeFooter> {
     private final User loginUser;
-    private final Person person;
     private final String toastMsg;
 
-    public PersonView(UriInfo uriInfo, User loginUser, Person person, String toastMsg) {
-        super("person.ftl", uriInfo, new MaterializeHeader(loginUser, "User Info", true), new MaterializeFooter());
+
+    public NewPersonView(UriInfo uriInfo, User loginUser, String toastMsg) {
+        super("new_person.ftl", uriInfo, new MaterializeHeader(loginUser, "Nový užívateľ", true), new MaterializeFooter());
         this.loginUser = loginUser;
-        this.person = person;
         this.toastMsg = toastMsg;
     }
 
@@ -25,7 +25,7 @@ public class PersonView extends MaterializePage<MaterializeHeader, MaterializeFo
         return loginUser;
     }
 
-    public Person getPerson() {
-        return person;
+    public Role getSystemRoles() {
+        return Role.getInstance();
     }
 }

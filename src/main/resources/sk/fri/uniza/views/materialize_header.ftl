@@ -3,7 +3,7 @@
 <header>
     <nav class="light-blue lighten-1 nav-extended" role="navigation">
         <div class="nav-wrapper container">
-            <a id="logo-container" href="#" class="brand-logo left logo">
+            <a id="logo-container" href="/" class="brand-logo left logo">
                 <img class="responsive-img" src="/assets/img/logo_small.png" style="max-height:50px;">
                 <span class="hide-on-large-only show-on-medium-and-down " style="margin-left: 60px; font-size: large">WindFarm Demo</span>
                 <span class="hide-on-med-and-down" style="margin-left: 60px; font-size: xx-large">WindFarm Demo</span>
@@ -38,8 +38,8 @@
                                 <#--                                <img src="/assets/img/windmill_small_.jpg">-->
                             </div>
                             <a href="#user"><img class="circle" src="/assets/img/img_avatar.png"></a>
-                            <a href="#name"><span class="white-text name">John Doe</span></a>
-                            <a href="#email"><span class="white-text email">jdandturk@gmail.com</span></a>
+                            <a href="#name"><span class="white-text name">${getHeader().getUser().getName()}</span></a>
+                            <a href="#email"><span class="white-text email">${getHeader().getUser().getName()}</span></a>
                         </div>
                     </li>
 
