@@ -114,7 +114,7 @@ public class PersonsResource {
             response = WindFarmDemoApplication.getWindFarmServis().deletePerson(session.getBearerToken(), personID).execute();
             if (response.isSuccessful()) {
                 URI uri = UriBuilder.fromPath("/persons")
-                        .queryParam("page",page)
+                        .queryParam("page", page)
                         .build();
                 return javax.ws.rs.core.Response.seeOther(uri)
                         .build();
@@ -154,35 +154,39 @@ public class PersonsResource {
         try {
 
 
-            {
-                Person personToBeSaved = new PersonBuilder()
-                        .setUserName(username)
-                        .setFirstName(first_name)
-                        .setLastName(last_name)
-                        .setEmail(email)
-                        .setPassword(null)
-                        .setRoles(roles)
-                        .createPerson();
+            Person personToBeSaved = new PersonBuilder()
+                    .setUserName(username)
+                    .setFirstName(first_name)
+                    .setLastName(last_name)
+                    .setEmail(email)
+                    .setPassword(null)
+                    .setRoles(roles)
+                    .createPerson();
 
 
-                personResponse = WindFarmDemoApplication.getWindFarmServis()
-                        .savePersons(session.getBearerToken(), personToBeSaved)
-                        .execute();
+            personResponse = WindFarmDemoApplication.getWindFarmServis()
+                    .savePersons(session.getBearerToken(), personToBeSaved)
+                    .execute();
 
-                // If password has changed save it!
-                Response<Void> response = WindFarmDemoApplication.getWindFarmServis().saveNewPassword(session.getBearerToken(), personResponse.body().getId(), password).execute();
+            if (!personResponse.isSuccessful())
+                throw new WebApplicationException(personResponse.errorBody().string(), personResponse.code());
+
+            // If password has changed save it!
+            Response response = WindFarmDemoApplication.getWindFarmServis().saveNewPassword(session.getBearerToken(), personResponse.body().getId(), password).execute();
 
 
-                if (response.isSuccessful()) {
-                    URI uri = UriBuilder.fromPath("/persons")
-                            .build();
+            if (response.isSuccessful()) {
+                URI uri = UriBuilder.fromPath("/persons")
+                        .build();
 
-                    return javax.ws.rs.core.Response.seeOther(uri)
-                            .build();
-                }
+                return javax.ws.rs.core.Response.seeOther(uri)
+                        .build();
+            } else {
+                // If password cannot be saved roll back new person
+                WindFarmDemoApplication.getWindFarmServis().deletePerson(session.getBearerToken(), personResponse.body().getId()).execute();
+                throw new WebApplicationException(response.errorBody().string(), response.code());
             }
 
-            throw new WebApplicationException(personResponse.errorBody().string(), personResponse.code());
         } catch (IOException e) {
             e.printStackTrace();
             throw new WebApplicationException(e);

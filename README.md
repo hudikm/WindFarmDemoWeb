@@ -1,4 +1,7 @@
-# WindFarmDemo
+# WindFarmDemo Web application
+This application is dependent on the REST service [windfarm demo](https://github.com/hudikm/WindFarmDemo).
+
+[Documentation(Slovak)](https://hudikm.github.io/WindfarmDemoDocs/)
 
 How to start the WindFarmDemo application
 ---

@@ -73,11 +73,11 @@ public class LoginResource {
         return new LoginView(uriInfo, oauthUrl, "/persons/user-info");
     }
 
-    @POST
+    @GET
     @Path("oauth-callback")
     @Produces(MediaType.TEXT_HTML)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response oauthCallback(@QueryParam("code") String code, @QueryParam("state") String state, MultivaluedMap<String, String> formParams) {
+    public Response oauthCallback(@QueryParam("code") String code, @QueryParam("state") String state, @QueryParam("stay_signin") Boolean stay_signin /*MultivaluedMap<String, String> formParams*/) {
 
         Map<String, String> codeRequest = ImmutableMap.of(
                 "client_id", serviceDbAuthConfig.getClientId(),
@@ -106,7 +106,7 @@ public class LoginResource {
         }
 
         final Boolean useSecureCookie = false; // determines whether the cookie should only be sent using a secure protocol, such as HTTPS or SSL
-        final int expiryTime = formParams.getFirst("stay_signin") != null ? 3600 * 24 * 7 : -1;  // 1 week in seconds / // A negative value means that the cookie is not stored persistently and will be deleted when the Web browser exits. A zero value causes the cookie to be deleted.
+        final int expiryTime = (stay_signin!=null && stay_signin) ? 3600 * 24 * 7 : -1;  // 1 week in seconds / // A negative value means that the cookie is not stored persistently and will be deleted when the Web browser exits. A zero value causes the cookie to be deleted.
         final String cookiePath = "/"; // The cookie is visible to all the pages in the directory you specify, and all the pages in that directory's subdirectories
 
         NewCookie newCookie = new NewCookie("user_session", session.getSession(), cookiePath, "", "", expiryTime, useSecureCookie);

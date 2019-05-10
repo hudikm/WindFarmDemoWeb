@@ -37,11 +37,12 @@ public class HelloWorldResource {
     public Response redirect(@Context HttpHeaders headers) {
         URI uri;
         User user = null;
+
         try {
             user = sessionDao.getSession(headers).getUser();
-        } catch (WebApplicationException e){
-
-        };
+        } catch (NullPointerException | WebApplicationException e) {
+            user = null;
+        }
 
         if (user == null) {
             uri = UriBuilder.fromPath("/login")

@@ -99,12 +99,12 @@ public class WindFarmDemoApplication extends Application<WindFarmDemoConfigurati
         // Setup user auth
         registerUserAuth(configuration, environment);
 
-//        environment.jersey().register(HttpSessionProvider.class);
-        SessionHandler sessionHandler = new SessionHandler();
-        // We are going to use cookies to store web session
-        sessionHandler.setUsingCookies(true);
-
-        environment.servlets().setSessionHandler(sessionHandler);
+////        environment.jersey().register(HttpSessionProvider.class);
+//        SessionHandler sessionHandler = new SessionHandler();
+//        // We are going to use cookies to store web session
+//        sessionHandler.setUsingCookies(true);
+//
+//        environment.servlets().setSessionHandler(sessionHandler);
 
         // Register new error page handler
         environment.jersey().register(new ErrorEntityWriter<ErrorMessage, View>(MediaType.TEXT_HTML_TYPE, View.class) {
@@ -150,6 +150,10 @@ public class WindFarmDemoApplication extends Application<WindFarmDemoConfigurati
 
     }
 
+    /**
+     * Retrieve public key from WindfarmDemo service
+     * @return public key
+     */
     private Key getSecreteKey() {
         if (serverPublicKey == null) {
             try {

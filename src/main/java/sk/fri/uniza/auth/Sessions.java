@@ -3,6 +3,7 @@ package sk.fri.uniza.auth;
 import sk.fri.uniza.db.BasicDao;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import java.util.*;
 
@@ -38,10 +39,21 @@ public class Sessions implements BasicDao<Session, String> {
         sessionDB.remove(session.getSession());
     }
 
-    public Session getSession(HttpHeaders headers) {
-        String sessionStr = headers.getCookies().get(Sessions.COOKIE_SESSION).getValue();
+    /**
+     *
+     * @param headers
+     * @return
+     * @throws NullPointerException
+     * @throws WebApplicationException
+     */
+    public Session getSession(HttpHeaders headers) throws NullPointerException, WebApplicationException {
+
+        Cookie cookie = headers.getCookies().get(Sessions.COOKIE_SESSION);
+        if (cookie == null) throw new NullPointerException();
+        String sessionStr = cookie.getValue();
         Optional<Session> sessionOptional = get(sessionStr);
-        sessionOptional.orElseThrow(() -> new WebApplicationException());
+        sessionOptional.orElseThrow(WebApplicationException::new);
+
         return sessionOptional.get();
 
     }
